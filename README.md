@@ -1,8 +1,7 @@
 # qucs-mcp
 
-MCP server for [Qucs/uSimmics](https://qucsstudio.de) circuit simulation. Enables Claude
-and other MCP-compatible AI assistants to generate circuit schematics, run simulations,
-and parse results programmatically.
+MCP server for [Qucs/uSimmics](https://qucsstudio.de) circuit simulation. Enables MCP-compatible agents 
+to generate circuit schematics, run simulations, and parse results programmatically.
 
 ## What it does
 
@@ -94,12 +93,12 @@ Add to `.claude/settings.json` in your project:
 
 ## Example: voltage divider via MCP
 
-Ask Claude (with this MCP enabled):
+Ask an agent (with this MCP enabled):
 
 > Create a voltage divider with R1=10k and R2=10k, supply 5V, sweep the supply from 0 to
 > 10V in 11 steps, run the DC simulation, and tell me the midpoint voltage at each step.
 
-Claude will call `create_schematic` then `run_simulation` then `read_simulation_results`
+The agent will call `create_schematic` then `run_simulation` then `read_simulation_results`
 and report the values.
 
 ## Development
