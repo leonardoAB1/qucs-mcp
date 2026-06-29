@@ -19,6 +19,10 @@ class ResultsParseError(QucsError):
     """Raised when a .dat file cannot be parsed."""
 
 
+class KiCadParseError(QucsError):
+    """Raised when a .kicad_sch file cannot be parsed or has an unexpected root tag."""
+
+
 class QucsConfigError(QucsError):
     """Raised when QUCS_HOME cannot be resolved to a valid installation."""
 

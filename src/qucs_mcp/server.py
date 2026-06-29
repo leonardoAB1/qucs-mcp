@@ -18,11 +18,12 @@ from typing import Any
 from mcp.server.fastmcp import FastMCP
 
 from qucs_mcp.config import QucsConfig
+from qucs_mcp.kicad import kicad_schematic_to_dict, kicad_to_qucs, parse_kicad_file
 from qucs_mcp.netlist import write_netlist
 from qucs_mcp.results import parse_dat_file
 from qucs_mcp.schematic import Component, Schematic, SimCommand, write_sch
 from qucs_mcp.simulator import run_simulation as _run_simulation
-from qucs_mcp.utils import QucsConfigError, SimulationError, SimulationTimeoutError
+from qucs_mcp.utils import KiCadParseError, QucsConfigError, SimulationError, SimulationTimeoutError
 
 logging.basicConfig(
     level=logging.INFO,
@@ -225,6 +226,100 @@ def create_schematic(
         "sch_path": str(sch_path),
         "netlist_path": str(netlist_path),
         "project_dir": str(project_dir),
+    }
+
+
+# ---------------------------------------------------------------------------
+# Tool: parse_kicad_schematic
+# ---------------------------------------------------------------------------
+
+
+@mcp.tool()
+def parse_kicad_schematic(path: str) -> dict[str, Any]:
+    """
+    Parse a KiCad .kicad_sch schematic file and return structured component and wire data.
+
+    KiCad schematics do not contain simulation commands. To simulate the circuit,
+    use kicad_to_qucs_schematic to convert it first, then add a simulation command
+    with create_schematic before calling run_simulation.
+
+    Args:
+        path: Absolute path to the .kicad_sch file.
+
+    Returns:
+        lib_symbols (list[str]): KiCad lib IDs referenced by the schematic.
+        components (list[dict]): Each entry has lib_id, reference, value, x, y, rotation.
+        wires (list[dict]): Each entry has x1, y1, x2, y2 in millimetres.
+        labels (list[dict]): Each entry has text, x, y.
+        component_count, wire_count, label_count (int).
+    """
+    file_path = Path(path)
+    if not file_path.exists():
+        return {"error": f"File not found: {path}"}
+    if file_path.suffix != ".kicad_sch":
+        return {"error": f"Expected a .kicad_sch file, got: {file_path.suffix!r}"}
+    try:
+        ksch = parse_kicad_file(file_path)
+    except KiCadParseError as exc:
+        return {"error": str(exc)}
+    return kicad_schematic_to_dict(ksch)
+
+
+# ---------------------------------------------------------------------------
+# Tool: kicad_to_qucs_schematic
+# ---------------------------------------------------------------------------
+
+
+@mcp.tool()
+def kicad_to_qucs_schematic(
+    path: str,
+    name: str,
+    project: str = "default",
+) -> dict[str, Any]:
+    """
+    Convert a KiCad .kicad_sch schematic to a Qucs .sch file and netlist.
+
+    Resolves wire connectivity and net labels to assign net names to component pins.
+    Power symbols (GND, VCC, etc.) become net names rather than circuit elements.
+
+    KiCad schematics have no simulation commands. The output files contain only
+    components and connectivity. Add a simulation with create_schematic before
+    calling run_simulation.
+
+    Args:
+        path: Absolute path to the .kicad_sch file.
+        name: Base name for the output files (no extension).
+        project: Qucs project name. Creates ~/.qucs/<project>_prj/ if absent.
+
+    Returns:
+        sch_path (str), netlist_path (str), project_dir (str),
+        component_count (int), warnings (list[str]).
+    """
+    file_path = Path(path)
+    if not file_path.exists():
+        return {"error": f"File not found: {path}"}
+    if file_path.suffix != ".kicad_sch":
+        return {"error": f"Expected a .kicad_sch file, got: {file_path.suffix!r}"}
+    try:
+        ksch = parse_kicad_file(file_path)
+    except KiCadParseError as exc:
+        return {"error": str(exc)}
+
+    sch, warnings = kicad_to_qucs(ksch, name)
+
+    project_dir = _project_dir(project)
+    sch_path = project_dir / f"{name}.sch"
+    netlist_path = project_dir / f"{name}.txt"
+
+    write_sch(sch, sch_path)
+    write_netlist(sch, sch_path, netlist_path)
+
+    return {
+        "sch_path": str(sch_path),
+        "netlist_path": str(netlist_path),
+        "project_dir": str(project_dir),
+        "component_count": sum(1 for c in sch.components if c.type != "GND"),
+        "warnings": warnings,
     }
 
 
