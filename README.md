@@ -35,27 +35,9 @@ $env:QUCS_HOME = "C:\Program Files\uSimmics"
 uv run qucs-mcp
 ```
 
-## Claude Desktop integration
+## Claude integration
 
-Add to `%APPDATA%\Claude\claude_desktop_config.json`:
-
-```json
-{
-  "mcpServers": {
-    "qucs-mcp": {
-      "command": "uv",
-      "args": ["--directory", "C:\\path\\to\\qucs-mcp", "run", "qucs-mcp"],
-      "env": {
-        "QUCS_HOME": "C:\\Program Files\\uSimmics"
-      }
-    }
-  }
-}
-```
-
-## Claude Code (CLI) integration
-
-Add to `.claude/settings.json` in your project:
+Add to `%APPDATA%\Claude\claude_desktop_config.json` or `.claude/settings.json` in your project:
 
 ```json
 {
