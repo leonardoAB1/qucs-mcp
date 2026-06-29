@@ -5,8 +5,7 @@ to generate circuit schematics, run simulations, and parse results programmatica
 
 ## What it does
 
-Without this server, asking an AI to "simulate this circuit in Qucs" fails - the AI has
-no way to drive the simulator. This MCP exposes tools that let the AI:
+This MCP exposes tools that lets agents:
 
 - Build a Qucs schematic from component descriptions or KiCad files
 - Run the Qucs backend simulator (`simulator.exe`) headlessly
