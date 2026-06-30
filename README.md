@@ -9,12 +9,14 @@ and parse results programmatically.
 Without this server, asking an AI to "simulate this circuit in Qucs" fails - the AI has
 no way to drive the simulator. This MCP exposes tools that let the AI:
 
-- Build a Qucs schematic from component descriptions or KiCad files
+- Build a Qucs schematic from component descriptions
 - Run the Qucs backend simulator (`simulator.exe`) headlessly
 - Parse the binary `.dat` result files into readable data
 - Manage Qucs projects on disk
 
 ## Prerequisites
+
+> **Windows only.** `simulator.exe` is a Windows binary. macOS and Linux are not supported.
 
 - [uSimmics](https://qucsstudio.de) installed (download the zip, extract anywhere)
 - Python 3.11+ (managed by [uv](https://docs.astral.sh/uv/))
@@ -81,7 +83,7 @@ Add to `.claude/settings.json` in your project:
 | `QUCS_PROJECTS` | Directory for Qucs projects | `%HOMEPATH%\.qucs` |
 | `QUCS_SIM_TIMEOUT` | Simulation timeout in seconds | `60` |
 
-## Available tools (Phase 1)
+## Available tools
 
 | Tool | Description |
 |------|-------------|
@@ -91,6 +93,16 @@ Add to `.claude/settings.json` in your project:
 | `create_project` | Create a Qucs project directory under `~/.qucs` |
 | `list_project_files` | List all files in a project |
 | `list_components` | Browse available component types from Qucs libraries |
+
+### Supported simulation types
+
+| Type | Description |
+|------|-------------|
+| `DC` | DC operating point |
+| `AC` | AC frequency sweep (gain, phase, impedance vs. frequency) |
+| `TR` | Transient analysis (time-domain waveforms) |
+| `SW` | Parameter sweep over a component value or source |
+| `SP` | S-parameter analysis |
 
 ## Example: voltage divider via MCP
 
@@ -112,12 +124,6 @@ uv run ruff check src/
 uv run mypy src/
 uv run mcp dev src/qucs_mcp/server.py  # open MCP Inspector in browser
 ```
-
-## Roadmap
-
-- **Phase 2:** KiCad schematic import (`parse_kicad_schematic`, `kicad_to_qucs_schematic`)
-- **Phase 3:** Circuit image analysis (`extract_circuit_from_image` using Claude vision)
-- **Phase 4:** AC, transient, S-parameter simulation support; result plotting
 
 ## License
 
